@@ -18,6 +18,23 @@ import * as Sharing from 'expo-sharing';
 import QRCode from 'react-native-qrcode-svg';
 import { apiService, LoanRecord } from '../../src/services/api';
 
+// UNITEC CAM Colors
+const COLORS = {
+  primary: '#1a4b8c',
+  primaryDark: '#0d1b3e',
+  primaryLight: '#2563eb',
+  background: '#0a1628',
+  surface: '#0d2140',
+  surfaceLight: '#153058',
+  border: '#1e4976',
+  accent: '#3b82f6',
+  success: '#22c55e',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  textPrimary: '#ffffff',
+  textSecondary: '#94a3b8',
+};
+
 export default function ViewLoanScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -46,13 +63,13 @@ export default function ViewLoanScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return '#4ade80';
+        return COLORS.success;
       case 'returned':
-        return '#60a5fa';
+        return COLORS.accent;
       case 'cancelled':
-        return '#f87171';
+        return COLORS.error;
       default:
-        return '#9ca3af';
+        return COLORS.textSecondary;
     }
   };
 
@@ -100,19 +117,6 @@ export default function ViewLoanScreen() {
         },
       ]
     );
-  };
-
-  const generateQRDataUrl = async (): Promise<string> => {
-    return new Promise((resolve) => {
-      // Generate QR as SVG string for HTML
-      const qrSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150">
-          <rect width="150" height="150" fill="white"/>
-          <text x="75" y="75" text-anchor="middle" font-family="monospace" font-size="10">QR: ${id.substring(0, 8)}</text>
-        </svg>
-      `;
-      resolve(`data:image/svg+xml;base64,${btoa(qrSvg)}`);
-    });
   };
 
   const generatePrintHTML = () => {
@@ -165,9 +169,6 @@ export default function ViewLoanScreen() {
         </div>
       `
       : '';
-
-    // Generate QR code as inline SVG for the HTML
-    const qrSize = 33; // Size factor for QR modules
     
     return `
       <!DOCTYPE html>
@@ -175,7 +176,7 @@ export default function ViewLoanScreen() {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pase de Préstamo - CAM-TGU</title>
+        <title>Pase de Préstamo - CAM UNITEC</title>
         <style>
           * {
             margin: 0;
@@ -193,29 +194,35 @@ export default function ViewLoanScreen() {
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 20px;
-            border-bottom: 2px solid #333;
+            border-bottom: 3px solid #1a4b8c;
             padding-bottom: 15px;
           }
           .header-left {
             flex: 1;
           }
-          .header h1 {
-            font-size: 18px;
-            margin-bottom: 5px;
+          .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a4b8c;
           }
-          .header h2 {
-            font-size: 14px;
-            font-weight: normal;
-            color: #666;
+          .logo-subtitle {
+            font-size: 12px;
+            color: #1a4b8c;
+            margin-top: 4px;
+          }
+          .header h1 {
+            font-size: 16px;
+            margin-top: 10px;
+            color: #0d1b3e;
           }
           .qr-container {
             text-align: center;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 2px solid #1a4b8c;
             border-radius: 8px;
-            background: #f9f9f9;
+            background: #f8fafc;
           }
-          .qr-container img {
+          .qr-container svg, .qr-container img {
             width: 100px;
             height: 100px;
           }
@@ -226,9 +233,10 @@ export default function ViewLoanScreen() {
           }
           .qr-id {
             font-family: monospace;
-            font-size: 9px;
-            color: #333;
+            font-size: 8px;
+            color: #1a4b8c;
             word-break: break-all;
+            max-width: 120px;
           }
           .request-date {
             text-align: right;
@@ -239,8 +247,9 @@ export default function ViewLoanScreen() {
             margin-bottom: 20px;
           }
           .section h3 {
-            background: #f0f0f0;
-            padding: 8px;
+            background: #1a4b8c;
+            color: white;
+            padding: 8px 12px;
             margin-bottom: 10px;
             font-size: 13px;
           }
@@ -258,12 +267,13 @@ export default function ViewLoanScreen() {
           }
           .data-table th, .data-table td {
             padding: 8px;
-            border: 1px solid #333;
+            border: 1px solid #1a4b8c;
             text-align: left;
           }
           .data-table th {
-            background: #f0f0f0;
+            background: #e8f0fe;
             font-weight: bold;
+            color: #1a4b8c;
           }
           .signature-cell {
             min-width: 150px;
@@ -280,6 +290,13 @@ export default function ViewLoanScreen() {
           .responsible-signature {
             margin-top: 30px;
             text-align: center;
+          }
+          .responsible-signature h3 {
+            background: none;
+            color: #1a4b8c;
+            border-bottom: 2px solid #1a4b8c;
+            display: inline-block;
+            padding: 8px 20px;
           }
           .responsible-signature-img {
             max-width: 200px;
@@ -316,23 +333,23 @@ export default function ViewLoanScreen() {
       <body>
         <div class="header">
           <div class="header-left">
-            <h1>CAM-TGU</h1>
-            <h2>PASE DE SALIDA DE EQUIPO DEL CENTRO AVANZADO DE MEDIOS</h2>
+            <div class="logo-text">UNITEC | Centro Avanzado de Medios</div>
+            <div class="logo-subtitle">ESCUELA DE ARTE & DISEÑO | TEGUCIGALPA</div>
+            <h1>PASE DE SALIDA DE EQUIPO</h1>
           </div>
           <div class="qr-container">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-              <!-- QR Code placeholder with ID -->
-              <rect width="100" height="100" fill="white" stroke="#333" stroke-width="2"/>
-              <rect x="10" y="10" width="25" height="25" fill="#333"/>
+              <rect width="100" height="100" fill="white" stroke="#1a4b8c" stroke-width="2"/>
+              <rect x="10" y="10" width="25" height="25" fill="#1a4b8c"/>
               <rect x="15" y="15" width="15" height="15" fill="white"/>
-              <rect x="18" y="18" width="9" height="9" fill="#333"/>
-              <rect x="65" y="10" width="25" height="25" fill="#333"/>
+              <rect x="18" y="18" width="9" height="9" fill="#1a4b8c"/>
+              <rect x="65" y="10" width="25" height="25" fill="#1a4b8c"/>
               <rect x="70" y="15" width="15" height="15" fill="white"/>
-              <rect x="73" y="18" width="9" height="9" fill="#333"/>
-              <rect x="10" y="65" width="25" height="25" fill="#333"/>
+              <rect x="73" y="18" width="9" height="9" fill="#1a4b8c"/>
+              <rect x="10" y="65" width="25" height="25" fill="#1a4b8c"/>
               <rect x="15" y="70" width="15" height="15" fill="white"/>
-              <rect x="18" y="73" width="9" height="9" fill="#333"/>
-              <rect x="40" y="40" width="20" height="20" fill="#333"/>
+              <rect x="18" y="73" width="9" height="9" fill="#1a4b8c"/>
+              <rect x="40" y="40" width="20" height="20" fill="#1a4b8c"/>
               <rect x="45" y="45" width="10" height="10" fill="white"/>
             </svg>
             <div class="qr-label">Escanear para ver detalles</div>
@@ -428,7 +445,6 @@ export default function ViewLoanScreen() {
       const html = generatePrintHTML();
       
       if (Platform.OS === 'web') {
-        // For web, open in new window
         const printWindow = window.open('', '_blank');
         if (printWindow) {
           printWindow.document.write(html);
@@ -436,7 +452,6 @@ export default function ViewLoanScreen() {
           printWindow.print();
         }
       } else {
-        // For mobile - generate PDF and share
         const { uri } = await Print.printToFileAsync({ html });
         
         const canShare = await Sharing.isAvailableAsync();
@@ -461,7 +476,7 @@ export default function ViewLoanScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }
@@ -487,7 +502,7 @@ export default function ViewLoanScreen() {
               value={loan.id}
               size={120}
               backgroundColor="white"
-              color="#1a1a2e"
+              color="#1a4b8c"
             />
           </View>
           <View style={styles.qrInfo}>
@@ -521,32 +536,32 @@ export default function ViewLoanScreen() {
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#4ade8020' }]}
+            style={[styles.actionButton, { backgroundColor: COLORS.success + '20' }]}
             onPress={() => handleStatusChange('returned')}
           >
-            <Ionicons name="checkmark-circle" size={20} color="#4ade80" />
-            <Text style={[styles.actionButtonText, { color: '#4ade80' }]}>Devuelto</Text>
+            <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
+            <Text style={[styles.actionButtonText, { color: COLORS.success }]}>Devuelto</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#f8717120' }]}
+            style={[styles.actionButton, { backgroundColor: COLORS.error + '20' }]}
             onPress={() => handleStatusChange('cancelled')}
           >
-            <Ionicons name="close-circle" size={20} color="#f87171" />
-            <Text style={[styles.actionButtonText, { color: '#f87171' }]}>Cancelar</Text>
+            <Ionicons name="close-circle" size={20} color={COLORS.error} />
+            <Text style={[styles.actionButtonText, { color: COLORS.error }]}>Cancelar</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#60a5fa20' }]}
+            style={[styles.actionButton, { backgroundColor: COLORS.accent + '20' }]}
             onPress={() => router.push(`/edit/${id}`)}
           >
-            <Ionicons name="pencil" size={20} color="#60a5fa" />
-            <Text style={[styles.actionButtonText, { color: '#60a5fa' }]}>Editar</Text>
+            <Ionicons name="pencil" size={20} color={COLORS.accent} />
+            <Text style={[styles.actionButtonText, { color: COLORS.accent }]}>Editar</Text>
           </TouchableOpacity>
         </View>
 
         {/* General Info */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="information-circle" size={20} color="#6366f1" />
+            <Ionicons name="information-circle" size={20} color={COLORS.accent} />
             <Text style={styles.sectionTitle}>Información General</Text>
           </View>
           <View style={styles.infoCard}>
@@ -563,7 +578,7 @@ export default function ViewLoanScreen() {
         {loan.vehicle && Object.values(loan.vehicle).some((v) => v) && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="car" size={20} color="#6366f1" />
+              <Ionicons name="car" size={20} color={COLORS.accent} />
               <Text style={styles.sectionTitle}>Vehículo</Text>
             </View>
             <View style={styles.infoCard}>
@@ -579,7 +594,7 @@ export default function ViewLoanScreen() {
         {/* Participants */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="people" size={20} color="#6366f1" />
+            <Ionicons name="people" size={20} color={COLORS.accent} />
             <Text style={styles.sectionTitle}>
               Integrantes ({loan.participants?.length || 0})
             </Text>
@@ -609,7 +624,7 @@ export default function ViewLoanScreen() {
         {/* Equipment */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="hardware-chip" size={20} color="#6366f1" />
+            <Ionicons name="hardware-chip" size={20} color={COLORS.accent} />
             <Text style={styles.sectionTitle}>
               Equipo ({loan.equipment_list?.length || 0})
             </Text>
@@ -630,7 +645,7 @@ export default function ViewLoanScreen() {
         {loan.responsible_signature && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Ionicons name="create" size={20} color="#6366f1" />
+              <Ionicons name="create" size={20} color={COLORS.accent} />
               <Text style={styles.sectionTitle}>Firma del Responsable</Text>
             </View>
             <View style={styles.responsibleSignatureContainer}>
@@ -645,7 +660,7 @@ export default function ViewLoanScreen() {
 
         {/* Delete Button */}
         <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-          <Ionicons name="trash" size={20} color="#f87171" />
+          <Ionicons name="trash" size={20} color={COLORS.error} />
           <Text style={styles.deleteButtonText}>Eliminar Préstamo</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -681,16 +696,16 @@ const InfoRow = ({ label, value }: { label: string; value: string }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f1a',
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0f0f1a',
+    backgroundColor: COLORS.background,
   },
   errorText: {
-    color: '#f87171',
+    color: COLORS.error,
     fontSize: 16,
   },
   scrollView: {
@@ -701,12 +716,12 @@ const styles = StyleSheet.create({
   },
   qrCard: {
     flexDirection: 'row',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#6366f1',
+    borderWidth: 2,
+    borderColor: COLORS.primary,
     alignItems: 'center',
   },
   qrCodeContainer: {
@@ -719,28 +734,28 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   qrTitle: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: 'bold',
   },
   qrSubtitle: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 12,
     marginTop: 4,
   },
   qrId: {
-    color: '#6366f1',
+    color: COLORS.accent,
     fontSize: 10,
     fontFamily: 'monospace',
     marginTop: 8,
   },
   statusCard: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   statusHeader: {
     flexDirection: 'row',
@@ -750,7 +765,7 @@ const styles = StyleSheet.create({
   className: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.textPrimary,
     flex: 1,
   },
   statusBadge: {
@@ -771,7 +786,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   sectionInfo: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     marginTop: 8,
     fontSize: 14,
   },
@@ -805,28 +820,28 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.textPrimary,
   },
   infoCard: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#2d2d44',
+    borderBottomColor: COLORS.border,
   },
   infoLabel: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 14,
   },
   infoValue: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 14,
     fontWeight: '500',
     flex: 1,
@@ -834,12 +849,12 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   participantCard: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   participantInfo: {
     flexDirection: 'row',
@@ -849,7 +864,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
     color: '#fff',
     textAlign: 'center',
     lineHeight: 30,
@@ -860,12 +875,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   participantName: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   participantAccount: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 13,
     marginTop: 2,
   },
@@ -877,12 +892,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   equipmentCard: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   equipmentHeader: {
     flexDirection: 'row',
@@ -893,7 +908,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
     color: '#fff',
     textAlign: 'center',
     lineHeight: 24,
@@ -902,12 +917,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   equipmentName: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   equipmentDetail: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 13,
     marginLeft: 34,
     marginTop: 2,
@@ -930,26 +945,26 @@ const styles = StyleSheet.create({
     padding: 16,
     marginTop: 16,
     borderWidth: 1,
-    borderColor: '#f87171',
+    borderColor: COLORS.error,
     borderRadius: 12,
   },
   deleteButtonText: {
-    color: '#f87171',
+    color: COLORS.error,
     fontSize: 16,
     fontWeight: '600',
   },
   printContainer: {
     padding: 16,
-    backgroundColor: '#0f0f1a',
+    backgroundColor: COLORS.background,
     borderTopWidth: 1,
-    borderTopColor: '#2d2d44',
+    borderTopColor: COLORS.border,
   },
   printButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     padding: 16,
   },

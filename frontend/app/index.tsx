@@ -16,6 +16,23 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { apiService, LoanRecord } from '../src/services/api';
 
+// UNITEC CAM Colors
+const COLORS = {
+  primary: '#1a4b8c',      // Azul UNITEC principal
+  primaryDark: '#0d1b3e',  // Azul oscuro
+  primaryLight: '#2563eb', // Azul claro
+  background: '#0a1628',   // Fondo oscuro azulado
+  surface: '#0d2140',      // Superficie de tarjetas
+  surfaceLight: '#153058', // Superficie más clara
+  border: '#1e4976',       // Bordes
+  accent: '#3b82f6',       // Acento azul brillante
+  success: '#22c55e',      // Verde éxito
+  warning: '#f59e0b',      // Amarillo advertencia
+  error: '#ef4444',        // Rojo error
+  textPrimary: '#ffffff',  // Texto principal
+  textSecondary: '#94a3b8', // Texto secundario
+};
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -56,13 +73,13 @@ export default function HomeScreen() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return '#4ade80';
+        return COLORS.success;
       case 'returned':
-        return '#60a5fa';
+        return COLORS.accent;
       case 'cancelled':
-        return '#f87171';
+        return COLORS.error;
       default:
-        return '#9ca3af';
+        return COLORS.textSecondary;
     }
   };
 
@@ -100,23 +117,23 @@ export default function HomeScreen() {
 
       <View style={styles.cardBody}>
         <View style={styles.infoRow}>
-          <Ionicons name="person-outline" size={16} color="#9ca3af" />
+          <Ionicons name="person-outline" size={16} color={COLORS.textSecondary} />
           <Text style={styles.infoText}>{item.teacher_name}</Text>
         </View>
         <View style={styles.infoRow}>
-          <Ionicons name="calendar-outline" size={16} color="#9ca3af" />
+          <Ionicons name="calendar-outline" size={16} color={COLORS.textSecondary} />
           <Text style={styles.infoText}>
             {item.departure_date} - {item.departure_time}
           </Text>
         </View>
         <View style={styles.infoRow}>
-          <Ionicons name="hardware-chip-outline" size={16} color="#9ca3af" />
+          <Ionicons name="hardware-chip-outline" size={16} color={COLORS.textSecondary} />
           <Text style={styles.infoText}>
             {item.equipment_list?.length || 0} equipo(s)
           </Text>
         </View>
         <View style={styles.infoRow}>
-          <Ionicons name="people-outline" size={16} color="#9ca3af" />
+          <Ionicons name="people-outline" size={16} color={COLORS.textSecondary} />
           <Text style={styles.infoText}>
             {item.participants?.length || 0} integrante(s)
           </Text>
@@ -125,7 +142,7 @@ export default function HomeScreen() {
 
       {/* Mini QR indicator */}
       <View style={styles.qrIndicator}>
-        <Ionicons name="qr-code-outline" size={16} color="#6366f1" />
+        <Ionicons name="qr-code-outline" size={16} color={COLORS.accent} />
         <Text style={styles.qrText}>{item.id.substring(0, 8)}...</Text>
       </View>
     </TouchableOpacity>
@@ -153,7 +170,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#6366f1" />
+        <ActivityIndicator size="large" color={COLORS.accent} />
         <Text style={styles.loadingText}>Cargando préstamos...</Text>
       </View>
     );
@@ -167,12 +184,12 @@ export default function HomeScreen() {
           <Text style={styles.statNumber}>{stats.total}</Text>
           <Text style={styles.statLabel}>Total</Text>
         </View>
-        <View style={[styles.statCard, { borderColor: '#4ade80' }]}>
-          <Text style={[styles.statNumber, { color: '#4ade80' }]}>{stats.active}</Text>
+        <View style={[styles.statCard, { borderColor: COLORS.success }]}>
+          <Text style={[styles.statNumber, { color: COLORS.success }]}>{stats.active}</Text>
           <Text style={styles.statLabel}>Activos</Text>
         </View>
-        <View style={[styles.statCard, { borderColor: '#60a5fa' }]}>
-          <Text style={[styles.statNumber, { color: '#60a5fa' }]}>{stats.returned}</Text>
+        <View style={[styles.statCard, { borderColor: COLORS.accent }]}>
+          <Text style={[styles.statNumber, { color: COLORS.accent }]}>{stats.returned}</Text>
           <Text style={styles.statLabel}>Devueltos</Text>
         </View>
       </View>
@@ -194,12 +211,12 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#6366f1"
+            tintColor={COLORS.accent}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={64} color="#4b5563" />
+            <Ionicons name="document-text-outline" size={64} color={COLORS.border} />
             <Text style={styles.emptyText}>No hay préstamos registrados</Text>
             <Text style={styles.emptySubtext}>Presiona el botón + para crear uno nuevo</Text>
           </View>
@@ -230,17 +247,17 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f1a',
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0f0f1a',
+    backgroundColor: COLORS.background,
   },
   loadingText: {
     marginTop: 16,
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 16,
   },
   statsContainer: {
@@ -250,21 +267,21 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.textPrimary,
   },
   statLabel: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     marginTop: 4,
   },
   filtersContainer: {
@@ -277,32 +294,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   filterButtonActive: {
-    backgroundColor: '#6366f1',
-    borderColor: '#6366f1',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   filterButtonText: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 13,
   },
   filterButtonTextActive: {
-    color: '#fff',
+    color: COLORS.textPrimary,
   },
   listContent: {
     padding: 16,
     paddingBottom: 160,
   },
   loanCard: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -316,11 +333,11 @@ const styles = StyleSheet.create({
   className: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.textPrimary,
   },
   section: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   statusBadge: {
@@ -349,7 +366,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   infoText: {
-    color: '#d1d5db',
+    color: COLORS.textSecondary,
     fontSize: 14,
   },
   qrIndicator: {
@@ -359,10 +376,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#2d2d44',
+    borderTopColor: COLORS.border,
   },
   qrText: {
-    color: '#6366f1',
+    color: COLORS.accent,
     fontSize: 12,
     fontFamily: 'monospace',
   },
@@ -373,12 +390,12 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyText: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 18,
     marginTop: 16,
   },
   emptySubtext: {
-    color: '#6b7280',
+    color: COLORS.border,
     fontSize: 14,
     marginTop: 8,
   },
@@ -388,10 +405,10 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#10b981',
+    backgroundColor: COLORS.success,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#10b981',
+    shadowColor: COLORS.success,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -403,10 +420,10 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#6366f1',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

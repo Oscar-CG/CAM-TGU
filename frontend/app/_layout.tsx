@@ -2,6 +2,30 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { View, Image, Text, StyleSheet } from 'react-native';
+
+// Custom header component with logo
+const CustomHeader = () => (
+  <View style={headerStyles.container}>
+    <Image
+      source={require('../assets/images/unitec-cam-logo.png')}
+      style={headerStyles.logo}
+      resizeMode="contain"
+    />
+  </View>
+);
+
+const headerStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  logo: {
+    width: 180,
+    height: 40,
+  },
+});
 
 export default function RootLayout() {
   return (
@@ -10,21 +34,21 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: '#1a1a2e',
+            backgroundColor: '#0d1b3e',
           },
           headerTintColor: '#fff',
           headerTitleStyle: {
             fontWeight: 'bold',
           },
           contentStyle: {
-            backgroundColor: '#0f0f1a',
+            backgroundColor: '#0a1628',
           },
         }}
       >
         <Stack.Screen 
           name="index" 
           options={{ 
-            title: 'CAM-TGU',
+            headerTitle: () => <CustomHeader />,
             headerShown: true 
           }} 
         />

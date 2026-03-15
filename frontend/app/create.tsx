@@ -18,6 +18,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { apiService, Participant, Equipment, Vehicle, LoanRecordCreate } from '../src/services/api';
 import SignatureCapture from '../src/components/SignatureCapture';
 
+// UNITEC CAM Colors
+const COLORS = {
+  primary: '#1a4b8c',
+  primaryDark: '#0d1b3e',
+  primaryLight: '#2563eb',
+  background: '#0a1628',
+  surface: '#0d2140',
+  surfaceLight: '#153058',
+  border: '#1e4976',
+  accent: '#3b82f6',
+  success: '#22c55e',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  textPrimary: '#ffffff',
+  textSecondary: '#94a3b8',
+};
+
 export default function CreateLoanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -186,7 +203,7 @@ export default function CreateLoanScreen() {
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder || label}
-        placeholderTextColor="#6b7280"
+        placeholderTextColor={COLORS.border}
         multiline={multiline}
         numberOfLines={multiline ? 3 : 1}
       />
@@ -205,7 +222,7 @@ export default function CreateLoanScreen() {
       >
         {/* Header */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="document-text" size={24} color="#6366f1" />
+          <Ionicons name="document-text" size={24} color={COLORS.accent} />
           <Text style={styles.sectionTitle}>Datos Generales</Text>
         </View>
 
@@ -222,7 +239,7 @@ export default function CreateLoanScreen() {
 
         {/* Dates */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="calendar" size={24} color="#6366f1" />
+          <Ionicons name="calendar" size={24} color={COLORS.accent} />
           <Text style={styles.sectionTitle}>Fechas y Horarios</Text>
         </View>
 
@@ -246,7 +263,7 @@ export default function CreateLoanScreen() {
 
         {/* CAM Staff */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="person" size={24} color="#6366f1" />
+          <Ionicons name="person" size={24} color={COLORS.accent} />
           <Text style={styles.sectionTitle}>Personal del CAM</Text>
         </View>
 
@@ -255,7 +272,7 @@ export default function CreateLoanScreen() {
 
         {/* Vehicle */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="car" size={24} color="#6366f1" />
+          <Ionicons name="car" size={24} color={COLORS.accent} />
           <Text style={styles.sectionTitle}>Vehículo (Opcional)</Text>
         </View>
 
@@ -279,7 +296,7 @@ export default function CreateLoanScreen() {
 
         {/* Participants */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="people" size={24} color="#6366f1" />
+          <Ionicons name="people" size={24} color={COLORS.accent} />
           <Text style={styles.sectionTitle}>Integrantes</Text>
         </View>
 
@@ -289,7 +306,7 @@ export default function CreateLoanScreen() {
               <Text style={styles.participantNumber}>Integrante {index + 1}</Text>
               {formData.participants.length > 1 && (
                 <TouchableOpacity onPress={() => removeParticipant(index)}>
-                  <Ionicons name="trash-outline" size={20} color="#f87171" />
+                  <Ionicons name="trash-outline" size={20} color={COLORS.error} />
                 </TouchableOpacity>
               )}
             </View>
@@ -312,7 +329,7 @@ export default function CreateLoanScreen() {
                 </View>
               ) : (
                 <>
-                  <Ionicons name="pencil" size={20} color="#6366f1" />
+                  <Ionicons name="pencil" size={20} color={COLORS.accent} />
                   <Text style={styles.signatureButtonText}>Capturar Firma</Text>
                 </>
               )}
@@ -321,13 +338,13 @@ export default function CreateLoanScreen() {
         ))}
 
         <TouchableOpacity style={styles.addButton} onPress={addParticipant}>
-          <Ionicons name="add-circle-outline" size={24} color="#6366f1" />
+          <Ionicons name="add-circle-outline" size={24} color={COLORS.accent} />
           <Text style={styles.addButtonText}>Agregar Integrante</Text>
         </TouchableOpacity>
 
         {/* Equipment */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="hardware-chip" size={24} color="#6366f1" />
+          <Ionicons name="hardware-chip" size={24} color={COLORS.accent} />
           <Text style={styles.sectionTitle}>Equipo a Utilizar</Text>
         </View>
 
@@ -337,7 +354,7 @@ export default function CreateLoanScreen() {
               <Text style={styles.participantNumber}>Equipo {index + 1}</Text>
               {formData.equipment_list.length > 1 && (
                 <TouchableOpacity onPress={() => removeEquipment(index)}>
-                  <Ionicons name="trash-outline" size={20} color="#f87171" />
+                  <Ionicons name="trash-outline" size={20} color={COLORS.error} />
                 </TouchableOpacity>
               )}
             </View>
@@ -352,13 +369,13 @@ export default function CreateLoanScreen() {
         ))}
 
         <TouchableOpacity style={styles.addButton} onPress={addEquipment}>
-          <Ionicons name="add-circle-outline" size={24} color="#6366f1" />
+          <Ionicons name="add-circle-outline" size={24} color={COLORS.accent} />
           <Text style={styles.addButtonText}>Agregar Equipo</Text>
         </TouchableOpacity>
 
         {/* Responsible Signature */}
         <View style={styles.sectionHeader}>
-          <Ionicons name="create" size={24} color="#6366f1" />
+          <Ionicons name="create" size={24} color={COLORS.accent} />
           <Text style={styles.sectionTitle}>Firma del Responsable</Text>
         </View>
 
@@ -377,7 +394,7 @@ export default function CreateLoanScreen() {
             </View>
           ) : (
             <>
-              <Ionicons name="pencil" size={32} color="#6366f1" />
+              <Ionicons name="pencil" size={32} color={COLORS.accent} />
               <Text style={styles.responsibleSignatureText}>Toque para firmar</Text>
             </>
           )}
@@ -419,7 +436,7 @@ export default function CreateLoanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f1a',
+    backgroundColor: COLORS.background,
   },
   scrollView: {
     flex: 1,
@@ -437,24 +454,24 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.textPrimary,
   },
   inputGroup: {
     marginBottom: 16,
   },
   label: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 14,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   multilineInput: {
     minHeight: 100,
@@ -468,12 +485,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   participantCard: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
   },
   participantHeader: {
     flexDirection: 'row',
@@ -482,7 +499,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   participantNumber: {
-    color: '#6366f1',
+    color: COLORS.accent,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -491,20 +508,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#2d2d44',
+    backgroundColor: COLORS.surfaceLight,
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#6366f1',
+    borderColor: COLORS.accent,
     borderStyle: 'dashed',
   },
   signatureButtonText: {
-    color: '#6366f1',
+    color: COLORS.accent,
     fontSize: 14,
     fontWeight: '500',
   },
   signatureButtonTextDone: {
-    color: '#4ade80',
+    color: COLORS.success,
     fontSize: 12,
     marginTop: 4,
   },
@@ -526,23 +543,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   addButtonText: {
-    color: '#6366f1',
+    color: COLORS.accent,
     fontSize: 16,
     fontWeight: '500',
   },
   responsibleSignatureButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 32,
     borderWidth: 2,
-    borderColor: '#6366f1',
+    borderColor: COLORS.accent,
     borderStyle: 'dashed',
     minHeight: 150,
   },
   responsibleSignatureText: {
-    color: '#6366f1',
+    color: COLORS.accent,
     fontSize: 16,
     marginTop: 12,
   },
@@ -557,16 +574,16 @@ const styles = StyleSheet.create({
   },
   submitContainer: {
     padding: 16,
-    backgroundColor: '#0f0f1a',
+    backgroundColor: COLORS.background,
     borderTopWidth: 1,
-    borderTopColor: '#2d2d44',
+    borderTopColor: COLORS.border,
   },
   submitButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     padding: 16,
   },

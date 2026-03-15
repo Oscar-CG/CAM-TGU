@@ -14,6 +14,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { apiService } from '../src/services/api';
 
+// UNITEC CAM Colors
+const COLORS = {
+  primary: '#1a4b8c',
+  primaryDark: '#0d1b3e',
+  primaryLight: '#2563eb',
+  background: '#0a1628',
+  surface: '#0d2140',
+  surfaceLight: '#153058',
+  border: '#1e4976',
+  accent: '#3b82f6',
+  success: '#22c55e',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  textPrimary: '#ffffff',
+  textSecondary: '#94a3b8',
+};
+
 export default function ScannerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -27,7 +44,6 @@ export default function ScannerScreen() {
     setScanned(true);
 
     try {
-      // Try to find the loan by ID
       const loan = await apiService.getLoan(data);
       if (loan) {
         router.replace(`/view/${data}`);
@@ -71,7 +87,7 @@ export default function ScannerScreen() {
   if (!permission.granted) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <Ionicons name="camera-outline" size={64} color="#6366f1" />
+        <Ionicons name="camera-outline" size={64} color={COLORS.accent} />
         <Text style={styles.message}>Se necesita permiso para acceder a la cámara</Text>
         <Text style={styles.submessage}>
           Para escanear códigos QR, necesitamos acceso a tu cámara.
@@ -85,7 +101,7 @@ export default function ScannerScreen() {
           style={styles.manualButton} 
           onPress={() => setShowManualInput(true)}
         >
-          <Ionicons name="keypad-outline" size={20} color="#6366f1" />
+          <Ionicons name="keypad-outline" size={20} color={COLORS.accent} />
           <Text style={styles.manualButtonText}>Ingresar ID Manualmente</Text>
         </TouchableOpacity>
       </View>
@@ -95,7 +111,7 @@ export default function ScannerScreen() {
   if (showManualInput) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <Ionicons name="search" size={64} color="#6366f1" />
+        <Ionicons name="search" size={64} color={COLORS.accent} />
         <Text style={styles.message}>Buscar por ID</Text>
         <Text style={styles.submessage}>
           Ingrese el ID del préstamo para buscarlo
@@ -106,7 +122,7 @@ export default function ScannerScreen() {
           value={manualId}
           onChangeText={setManualId}
           placeholder="ID del préstamo"
-          placeholderTextColor="#6b7280"
+          placeholderTextColor={COLORS.border}
           autoCapitalize="none"
         />
         
@@ -119,7 +135,7 @@ export default function ScannerScreen() {
           style={styles.backButton} 
           onPress={() => setShowManualInput(false)}
         >
-          <Ionicons name="camera" size={20} color="#6366f1" />
+          <Ionicons name="camera" size={20} color={COLORS.accent} />
           <Text style={styles.backButtonText}>Usar Cámara</Text>
         </TouchableOpacity>
       </View>
@@ -174,7 +190,7 @@ export default function ScannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f1a',
+    backgroundColor: COLORS.background,
   },
   centerContent: {
     justifyContent: 'center',
@@ -186,7 +202,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(10,22,40,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -200,7 +216,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    borderColor: '#6366f1',
+    borderColor: COLORS.accent,
   },
   topLeft: {
     top: 0,
@@ -237,14 +253,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   message: {
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 20,
     textAlign: 'center',
   },
   submessage: {
-    color: '#9ca3af',
+    color: COLORS.textSecondary,
     fontSize: 14,
     marginTop: 8,
     textAlign: 'center',
@@ -254,7 +270,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 12,
@@ -274,7 +290,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   manualButtonText: {
-    color: '#6366f1',
+    color: COLORS.accent,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -282,7 +298,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,
@@ -305,7 +321,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(99, 102, 241, 0.9)',
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 10,
@@ -316,13 +332,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   input: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     padding: 16,
-    color: '#fff',
+    color: COLORS.textPrimary,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#2d2d44',
+    borderColor: COLORS.border,
     width: '100%',
     marginTop: 24,
   },
@@ -330,7 +346,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
@@ -350,7 +366,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   backButtonText: {
-    color: '#6366f1',
+    color: COLORS.accent,
     fontSize: 16,
     fontWeight: '600',
   },
