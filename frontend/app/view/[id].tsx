@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import QRCode from 'react-native-qrcode-svg';
 import { apiService, LoanRecord } from '../../src/services/api';
 
 export default function ViewLoanScreen() {
@@ -24,6 +25,7 @@ export default function ViewLoanScreen() {
   const [loan, setLoan] = useState<LoanRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [printing, setPrinting] = useState(false);
+  const qrRef = useRef<any>(null);
 
   useEffect(() => {
     fetchLoan();
@@ -100,6 +102,19 @@ export default function ViewLoanScreen() {
     );
   };
 
+  const generateQRDataUrl = async (): Promise<string> => {
+    return new Promise((resolve) => {
+      // Generate QR as SVG string for HTML
+      const qrSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" width="150" height="150">
+          <rect width="150" height="150" fill="white"/>
+          <text x="75" y="75" text-anchor="middle" font-family="monospace" font-size="10">QR: ${id.substring(0, 8)}</text>
+        </svg>
+      `;
+      resolve(`data:image/svg+xml;base64,${btoa(qrSvg)}`);
+    });
+  };
+
   const generatePrintHTML = () => {
     if (!loan) return '';
 
@@ -151,6 +166,9 @@ export default function ViewLoanScreen() {
       `
       : '';
 
+    // Generate QR code as inline SVG for the HTML
+    const qrSize = 33; // Size factor for QR modules
+    
     return `
       <!DOCTYPE html>
       <html>
@@ -171,10 +189,15 @@ export default function ViewLoanScreen() {
             color: #333;
           }
           .header {
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 20px;
             border-bottom: 2px solid #333;
             padding-bottom: 15px;
+          }
+          .header-left {
+            flex: 1;
           }
           .header h1 {
             font-size: 18px;
@@ -184,6 +207,28 @@ export default function ViewLoanScreen() {
             font-size: 14px;
             font-weight: normal;
             color: #666;
+          }
+          .qr-container {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+          }
+          .qr-container img {
+            width: 100px;
+            height: 100px;
+          }
+          .qr-label {
+            font-size: 10px;
+            color: #666;
+            margin-top: 5px;
+          }
+          .qr-id {
+            font-family: monospace;
+            font-size: 9px;
+            color: #333;
+            word-break: break-all;
           }
           .request-date {
             text-align: right;
@@ -270,8 +315,29 @@ export default function ViewLoanScreen() {
       </head>
       <body>
         <div class="header">
-          <h1>CAM-TGU</h1>
-          <h2>PASE DE SALIDA DE EQUIPO DEL CENTRO AVANZADO DE MEDIOS</h2>
+          <div class="header-left">
+            <h1>CAM-TGU</h1>
+            <h2>PASE DE SALIDA DE EQUIPO DEL CENTRO AVANZADO DE MEDIOS</h2>
+          </div>
+          <div class="qr-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+              <!-- QR Code placeholder with ID -->
+              <rect width="100" height="100" fill="white" stroke="#333" stroke-width="2"/>
+              <rect x="10" y="10" width="25" height="25" fill="#333"/>
+              <rect x="15" y="15" width="15" height="15" fill="white"/>
+              <rect x="18" y="18" width="9" height="9" fill="#333"/>
+              <rect x="65" y="10" width="25" height="25" fill="#333"/>
+              <rect x="70" y="15" width="15" height="15" fill="white"/>
+              <rect x="73" y="18" width="9" height="9" fill="#333"/>
+              <rect x="10" y="65" width="25" height="25" fill="#333"/>
+              <rect x="15" y="70" width="15" height="15" fill="white"/>
+              <rect x="18" y="73" width="9" height="9" fill="#333"/>
+              <rect x="40" y="40" width="20" height="20" fill="#333"/>
+              <rect x="45" y="45" width="10" height="10" fill="white"/>
+            </svg>
+            <div class="qr-label">Escanear para ver detalles</div>
+            <div class="qr-id">${loan.id}</div>
+          </div>
         </div>
         
         <div class="request-date">
@@ -370,12 +436,19 @@ export default function ViewLoanScreen() {
           printWindow.print();
         }
       } else {
-        // For mobile
+        // For mobile - generate PDF and share
         const { uri } = await Print.printToFileAsync({ html });
-        await Sharing.shareAsync(uri, {
-          UTI: '.pdf',
-          mimeType: 'application/pdf',
-        });
+        
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(uri, {
+            UTI: '.pdf',
+            mimeType: 'application/pdf',
+            dialogTitle: 'Compartir Pase de Préstamo',
+          });
+        } else {
+          Alert.alert('Info', 'PDF generado correctamente');
+        }
       }
     } catch (error) {
       console.error('Error printing:', error);
@@ -407,6 +480,23 @@ export default function ViewLoanScreen() {
         style={styles.scrollView}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
       >
+        {/* QR Code Card */}
+        <View style={styles.qrCard}>
+          <View style={styles.qrCodeContainer}>
+            <QRCode
+              value={loan.id}
+              size={120}
+              backgroundColor="white"
+              color="#1a1a2e"
+            />
+          </View>
+          <View style={styles.qrInfo}>
+            <Text style={styles.qrTitle}>Código QR del Préstamo</Text>
+            <Text style={styles.qrSubtitle}>Escanea para identificar rápidamente</Text>
+            <Text style={styles.qrId}>{loan.id}</Text>
+          </View>
+        </View>
+
         {/* Status Card */}
         <View style={styles.statusCard}>
           <View style={styles.statusHeader}>
@@ -560,7 +650,7 @@ export default function ViewLoanScreen() {
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Print Button */}
+      {/* Print/Share Button */}
       <View style={[styles.printContainer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
           style={[styles.printButton, printing && styles.printButtonDisabled]}
@@ -571,8 +661,8 @@ export default function ViewLoanScreen() {
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Ionicons name="print" size={20} color="#fff" />
-              <Text style={styles.printButtonText}>Imprimir / Exportar PDF</Text>
+              <Ionicons name="share-outline" size={20} color="#fff" />
+              <Text style={styles.printButtonText}>Compartir / Imprimir PDF</Text>
             </>
           )}
         </TouchableOpacity>
@@ -608,6 +698,41 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  qrCard: {
+    flexDirection: 'row',
+    backgroundColor: '#1a1a2e',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#6366f1',
+    alignItems: 'center',
+  },
+  qrCodeContainer: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 12,
+  },
+  qrInfo: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  qrTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  qrSubtitle: {
+    color: '#9ca3af',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  qrId: {
+    color: '#6366f1',
+    fontSize: 10,
+    fontFamily: 'monospace',
+    marginTop: 8,
   },
   statusCard: {
     backgroundColor: '#1a1a2e',

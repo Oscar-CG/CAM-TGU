@@ -122,6 +122,12 @@ export default function HomeScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Mini QR indicator */}
+      <View style={styles.qrIndicator}>
+        <Ionicons name="qr-code-outline" size={16} color="#6366f1" />
+        <Text style={styles.qrText}>{item.id.substring(0, 8)}...</Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -200,7 +206,16 @@ export default function HomeScreen() {
         }
       />
 
-      {/* FAB */}
+      {/* QR Scanner FAB */}
+      <TouchableOpacity
+        style={[styles.scanFab, { bottom: insets.bottom + 90 }]}
+        onPress={() => router.push('/scanner')}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="qr-code" size={24} color="#fff" />
+      </TouchableOpacity>
+
+      {/* Create FAB */}
       <TouchableOpacity
         style={[styles.fab, { bottom: insets.bottom + 20 }]}
         onPress={() => router.push('/create')}
@@ -279,7 +294,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: 100,
+    paddingBottom: 160,
   },
   loanCard: {
     backgroundColor: '#1a1a2e',
@@ -337,6 +352,20 @@ const styles = StyleSheet.create({
     color: '#d1d5db',
     fontSize: 14,
   },
+  qrIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#2d2d44',
+  },
+  qrText: {
+    color: '#6366f1',
+    fontSize: 12,
+    fontFamily: 'monospace',
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -352,6 +381,21 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontSize: 14,
     marginTop: 8,
+  },
+  scanFab: {
+    position: 'absolute',
+    right: 20,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#10b981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   fab: {
     position: 'absolute',

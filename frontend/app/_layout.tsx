@@ -48,6 +48,13 @@ export default function RootLayout() {
             presentation: 'modal'
           }} 
         />
+        <Stack.Screen 
+          name="scanner" 
+          options={{ 
+            title: 'Escanear QR',
+            presentation: 'modal'
+          }} 
+        />
       </Stack>
     </SafeAreaProvider>
   );
