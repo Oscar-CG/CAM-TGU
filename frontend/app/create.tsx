@@ -15,6 +15,9 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { apiService, Participant, Equipment, Vehicle, LoanRecordCreate } from '../src/services/api';
 import SignatureCapture from '../src/components/SignatureCapture';
 
@@ -35,12 +38,23 @@ const COLORS = {
   textSecondary: '#94a3b8',
 };
 
+type DateTimePickerMode = 'departureDate' | 'departureTime' | 'returnDate' | 'returnTime' | null;
+
 export default function CreateLoanScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [currentSignatureFor, setCurrentSignatureFor] = useState<'responsible' | number>('responsible');
+  
+  // Date/Time picker state
+  const [dateTimePickerMode, setDateTimePickerMode] = useState<DateTimePickerMode>(null);
+  const [selectedDates, setSelectedDates] = useState({
+    departureDate: null as Date | null,
+    departureTime: null as Date | null,
+    returnDate: null as Date | null,
+    returnTime: null as Date | null,
+  });
 
   // Form state
   const [formData, setFormData] = useState<LoanRecordCreate>({
@@ -131,6 +145,59 @@ export default function CreateLoanScreen() {
     }
   };
 
+  // Date/Time picker handlers
+  const openDateTimePicker = (mode: DateTimePickerMode) => {
+    setDateTimePickerMode(mode);
+  };
+
+  const handleDateTimeConfirm = (date: Date) => {
+    if (!dateTimePickerMode) return;
+
+    const newSelectedDates = { ...selectedDates };
+    
+    switch (dateTimePickerMode) {
+      case 'departureDate':
+        newSelectedDates.departureDate = date;
+        updateField('departure_date', format(date, 'dd/MM/yyyy'));
+        break;
+      case 'departureTime':
+        newSelectedDates.departureTime = date;
+        updateField('departure_time', format(date, 'HH:mm'));
+        break;
+      case 'returnDate':
+        newSelectedDates.returnDate = date;
+        updateField('return_date', format(date, 'dd/MM/yyyy'));
+        break;
+      case 'returnTime':
+        newSelectedDates.returnTime = date;
+        updateField('return_time', format(date, 'HH:mm'));
+        break;
+    }
+    
+    setSelectedDates(newSelectedDates);
+    setDateTimePickerMode(null);
+  };
+
+  const getPickerMode = (): 'date' | 'time' => {
+    if (dateTimePickerMode === 'departureTime' || dateTimePickerMode === 'returnTime') {
+      return 'time';
+    }
+    return 'date';
+  };
+
+  const getPickerDate = (): Date => {
+    if (!dateTimePickerMode) return new Date();
+    
+    const dateMap = {
+      departureDate: selectedDates.departureDate,
+      departureTime: selectedDates.departureTime,
+      returnDate: selectedDates.returnDate,
+      returnTime: selectedDates.returnTime,
+    };
+    
+    return dateMap[dateTimePickerMode] || new Date();
+  };
+
   const validateForm = (): boolean => {
     if (!formData.class_name.trim()) {
       Alert.alert('Error', 'El nombre de la clase es requerido');
@@ -183,7 +250,7 @@ export default function CreateLoanScreen() {
       ]);
     } catch (error) {
       console.error('Error creating loan:', error);
-      Alert.alert('Error', 'No se pudo crear el préstamo');
+      Alert.alert('Error', 'No se pudo crear el préstamo. Verifica tu conexión al servidor.');
     } finally {
       setLoading(false);
     }
@@ -207,6 +274,28 @@ export default function CreateLoanScreen() {
         multiline={multiline}
         numberOfLines={multiline ? 3 : 1}
       />
+    </View>
+  );
+
+  const renderDateTimePicker = (
+    label: string,
+    value: string,
+    mode: DateTimePickerMode,
+    icon: string,
+    placeholder: string
+  ) => (
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TouchableOpacity
+        style={styles.dateTimeButton}
+        onPress={() => openDateTimePicker(mode)}
+        activeOpacity={0.7}
+      >
+        <Ionicons name={icon as any} size={20} color={COLORS.accent} />
+        <Text style={[styles.dateTimeButtonText, !value && styles.dateTimePlaceholder]}>
+          {value || placeholder}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -245,19 +334,43 @@ export default function CreateLoanScreen() {
 
         <View style={styles.row}>
           <View style={styles.halfInput}>
-            {renderInput('Fecha Salida *', formData.departure_date, (v) => updateField('departure_date', v), 'DD/MM/YYYY')}
+            {renderDateTimePicker(
+              'Fecha Salida *',
+              formData.departure_date,
+              'departureDate',
+              'calendar-outline',
+              'Seleccionar fecha'
+            )}
           </View>
           <View style={styles.halfInput}>
-            {renderInput('Hora Salida *', formData.departure_time, (v) => updateField('departure_time', v), 'HH:MM')}
+            {renderDateTimePicker(
+              'Hora Salida *',
+              formData.departure_time,
+              'departureTime',
+              'time-outline',
+              'Seleccionar hora'
+            )}
           </View>
         </View>
 
         <View style={styles.row}>
           <View style={styles.halfInput}>
-            {renderInput('Fecha Regreso *', formData.return_date, (v) => updateField('return_date', v), 'DD/MM/YYYY')}
+            {renderDateTimePicker(
+              'Fecha Regreso *',
+              formData.return_date,
+              'returnDate',
+              'calendar-outline',
+              'Seleccionar fecha'
+            )}
           </View>
           <View style={styles.halfInput}>
-            {renderInput('Hora Regreso *', formData.return_time, (v) => updateField('return_time', v), 'HH:MM')}
+            {renderDateTimePicker(
+              'Hora Regreso *',
+              formData.return_time,
+              'returnTime',
+              'time-outline',
+              'Seleccionar hora'
+            )}
           </View>
         </View>
 
@@ -419,6 +532,19 @@ export default function CreateLoanScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Date/Time Picker Modal */}
+      <DateTimePickerModal
+        isVisible={dateTimePickerMode !== null}
+        mode={getPickerMode()}
+        date={getPickerDate()}
+        onConfirm={handleDateTimeConfirm}
+        onCancel={() => setDateTimePickerMode(null)}
+        confirmTextIOS="Confirmar"
+        cancelTextIOS="Cancelar"
+        locale="es_ES"
+        is24Hour={true}
+      />
+
       <SignatureCapture
         visible={showSignatureModal}
         onClose={() => setShowSignatureModal(false)}
@@ -476,6 +602,24 @@ const styles = StyleSheet.create({
   multilineInput: {
     minHeight: 100,
     textAlignVertical: 'top',
+  },
+  dateTimeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  dateTimeButtonText: {
+    color: COLORS.textPrimary,
+    fontSize: 16,
+    flex: 1,
+  },
+  dateTimePlaceholder: {
+    color: COLORS.border,
   },
   row: {
     flexDirection: 'row',
