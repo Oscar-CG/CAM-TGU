@@ -11,13 +11,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { apiService, Participant, Equipment, Vehicle, LoanRecordCreate } from '../src/services/api';
 import SignatureCapture from '../src/components/SignatureCapture';
 
@@ -38,7 +36,149 @@ const COLORS = {
   textSecondary: '#94a3b8',
 };
 
-type DateTimePickerMode = 'departureDate' | 'departureTime' | 'returnDate' | 'returnTime' | null;
+// Simple date/time picker for web compatibility
+const WebDateTimePicker = ({ 
+  visible, 
+  mode, 
+  onConfirm, 
+  onCancel,
+  value 
+}: { 
+  visible: boolean; 
+  mode: 'date' | 'time';
+  onConfirm: (value: string) => void;
+  onCancel: () => void;
+  value: string;
+}) => {
+  const [tempValue, setTempValue] = useState(value);
+
+  if (!visible) return null;
+
+  return (
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={webPickerStyles.overlay}>
+        <View style={webPickerStyles.container}>
+          <Text style={webPickerStyles.title}>
+            {mode === 'date' ? 'Seleccionar Fecha' : 'Seleccionar Hora'}
+          </Text>
+          
+          {Platform.OS === 'web' ? (
+            <input
+              type={mode}
+              value={tempValue}
+              onChange={(e) => setTempValue(e.target.value)}
+              style={{
+                fontSize: 18,
+                padding: 12,
+                borderRadius: 8,
+                border: '2px solid #1a4b8c',
+                backgroundColor: '#fff',
+                width: '100%',
+                marginVertical: 16,
+              }}
+            />
+          ) : (
+            <TextInput
+              style={webPickerStyles.input}
+              value={tempValue}
+              onChangeText={setTempValue}
+              placeholder={mode === 'date' ? 'DD/MM/YYYY' : 'HH:MM'}
+              placeholderTextColor="#999"
+            />
+          )}
+          
+          <View style={webPickerStyles.buttons}>
+            <TouchableOpacity style={webPickerStyles.cancelButton} onPress={onCancel}>
+              <Text style={webPickerStyles.cancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={webPickerStyles.confirmButton} 
+              onPress={() => {
+                if (tempValue) {
+                  // Format the value appropriately
+                  if (mode === 'date' && Platform.OS === 'web') {
+                    // Convert from YYYY-MM-DD to DD/MM/YYYY
+                    const [year, month, day] = tempValue.split('-');
+                    onConfirm(`${day}/${month}/${year}`);
+                  } else if (mode === 'time') {
+                    onConfirm(tempValue);
+                  } else {
+                    onConfirm(tempValue);
+                  }
+                }
+              }}
+            >
+              <Text style={webPickerStyles.confirmButtonText}>Confirmar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+const webPickerStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '90%',
+    maxWidth: 350,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1a4b8c',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  input: {
+    fontSize: 18,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#1a4b8c',
+    backgroundColor: '#fff',
+    marginVertical: 16,
+    textAlign: 'center',
+  },
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 8,
+  },
+  cancelButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: '#e5e7eb',
+  },
+  cancelButtonText: {
+    textAlign: 'center',
+    color: '#374151',
+    fontWeight: '600',
+  },
+  confirmButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    backgroundColor: '#1a4b8c',
+  },
+  confirmButtonText: {
+    textAlign: 'center',
+    color: '#fff',
+    fontWeight: '600',
+  },
+});
+
+type PickerMode = 'departureDate' | 'departureTime' | 'returnDate' | 'returnTime' | null;
 
 export default function CreateLoanScreen() {
   const router = useRouter();
@@ -48,13 +188,7 @@ export default function CreateLoanScreen() {
   const [currentSignatureFor, setCurrentSignatureFor] = useState<'responsible' | number>('responsible');
   
   // Date/Time picker state
-  const [dateTimePickerMode, setDateTimePickerMode] = useState<DateTimePickerMode>(null);
-  const [selectedDates, setSelectedDates] = useState({
-    departureDate: null as Date | null,
-    departureTime: null as Date | null,
-    returnDate: null as Date | null,
-    returnTime: null as Date | null,
-  });
+  const [pickerMode, setPickerMode] = useState<PickerMode>(null);
 
   // Form state
   const [formData, setFormData] = useState<LoanRecordCreate>({
@@ -146,56 +280,45 @@ export default function CreateLoanScreen() {
   };
 
   // Date/Time picker handlers
-  const openDateTimePicker = (mode: DateTimePickerMode) => {
-    setDateTimePickerMode(mode);
-  };
+  const handleDateTimeConfirm = (value: string) => {
+    if (!pickerMode) return;
 
-  const handleDateTimeConfirm = (date: Date) => {
-    if (!dateTimePickerMode) return;
-
-    const newSelectedDates = { ...selectedDates };
-    
-    switch (dateTimePickerMode) {
+    switch (pickerMode) {
       case 'departureDate':
-        newSelectedDates.departureDate = date;
-        updateField('departure_date', format(date, 'dd/MM/yyyy'));
+        updateField('departure_date', value);
         break;
       case 'departureTime':
-        newSelectedDates.departureTime = date;
-        updateField('departure_time', format(date, 'HH:mm'));
+        updateField('departure_time', value);
         break;
       case 'returnDate':
-        newSelectedDates.returnDate = date;
-        updateField('return_date', format(date, 'dd/MM/yyyy'));
+        updateField('return_date', value);
         break;
       case 'returnTime':
-        newSelectedDates.returnTime = date;
-        updateField('return_time', format(date, 'HH:mm'));
+        updateField('return_time', value);
         break;
     }
     
-    setSelectedDates(newSelectedDates);
-    setDateTimePickerMode(null);
+    setPickerMode(null);
   };
 
-  const getPickerMode = (): 'date' | 'time' => {
-    if (dateTimePickerMode === 'departureTime' || dateTimePickerMode === 'returnTime') {
+  const getPickerType = (): 'date' | 'time' => {
+    if (pickerMode === 'departureTime' || pickerMode === 'returnTime') {
       return 'time';
     }
     return 'date';
   };
 
-  const getPickerDate = (): Date => {
-    if (!dateTimePickerMode) return new Date();
+  const getPickerValue = (): string => {
+    if (!pickerMode) return '';
     
-    const dateMap = {
-      departureDate: selectedDates.departureDate,
-      departureTime: selectedDates.departureTime,
-      returnDate: selectedDates.returnDate,
-      returnTime: selectedDates.returnTime,
+    const valueMap: Record<string, string> = {
+      departureDate: formData.departure_date,
+      departureTime: formData.departure_time,
+      returnDate: formData.return_date,
+      returnTime: formData.return_time,
     };
     
-    return dateMap[dateTimePickerMode] || new Date();
+    return valueMap[pickerMode] || '';
   };
 
   const validateForm = (): boolean => {
@@ -235,7 +358,6 @@ export default function CreateLoanScreen() {
 
     setLoading(true);
     try {
-      // Filter out empty vehicle data
       const vehicleData = formData.vehicle;
       const hasVehicleData = vehicleData && Object.values(vehicleData).some((v) => v && v.trim());
       
@@ -280,7 +402,7 @@ export default function CreateLoanScreen() {
   const renderDateTimePicker = (
     label: string,
     value: string,
-    mode: DateTimePickerMode,
+    mode: PickerMode,
     icon: string,
     placeholder: string
   ) => (
@@ -288,7 +410,7 @@ export default function CreateLoanScreen() {
       <Text style={styles.label}>{label}</Text>
       <TouchableOpacity
         style={styles.dateTimeButton}
-        onPress={() => openDateTimePicker(mode)}
+        onPress={() => setPickerMode(mode)}
         activeOpacity={0.7}
       >
         <Ionicons name={icon as any} size={20} color={COLORS.accent} />
@@ -339,7 +461,7 @@ export default function CreateLoanScreen() {
               formData.departure_date,
               'departureDate',
               'calendar-outline',
-              'Seleccionar fecha'
+              'Seleccionar'
             )}
           </View>
           <View style={styles.halfInput}>
@@ -348,7 +470,7 @@ export default function CreateLoanScreen() {
               formData.departure_time,
               'departureTime',
               'time-outline',
-              'Seleccionar hora'
+              'Seleccionar'
             )}
           </View>
         </View>
@@ -360,7 +482,7 @@ export default function CreateLoanScreen() {
               formData.return_date,
               'returnDate',
               'calendar-outline',
-              'Seleccionar fecha'
+              'Seleccionar'
             )}
           </View>
           <View style={styles.halfInput}>
@@ -369,7 +491,7 @@ export default function CreateLoanScreen() {
               formData.return_time,
               'returnTime',
               'time-outline',
-              'Seleccionar hora'
+              'Seleccionar'
             )}
           </View>
         </View>
@@ -533,16 +655,12 @@ export default function CreateLoanScreen() {
       </View>
 
       {/* Date/Time Picker Modal */}
-      <DateTimePickerModal
-        isVisible={dateTimePickerMode !== null}
-        mode={getPickerMode()}
-        date={getPickerDate()}
+      <WebDateTimePicker
+        visible={pickerMode !== null}
+        mode={getPickerType()}
+        value={getPickerValue()}
         onConfirm={handleDateTimeConfirm}
-        onCancel={() => setDateTimePickerMode(null)}
-        confirmTextIOS="Confirmar"
-        cancelTextIOS="Cancelar"
-        locale="es_ES"
-        is24Hour={true}
+        onCancel={() => setPickerMode(null)}
       />
 
       <SignatureCapture
